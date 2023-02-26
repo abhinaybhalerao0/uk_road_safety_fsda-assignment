@@ -1,0 +1,80 @@
+create database uk_road_safety
+use uk_road_safety
+
+create table accidents_2015
+(
+  Accident_Index varchar(30),
+  Police_Force int,
+  Accident_Severity int,
+  Number_of_Vehicles int,
+  Number_of_Casualties int,
+  Local_Authority_District int,
+  Local_Authority_Highway varchar(30),
+  First_Road_Class int,
+  First_Road_Number int,
+  Road_Type int,
+  Speed_limit int,
+  Junction_Detail int,
+  Junction_Control int,
+  Second_Road_Class int,
+  Second_Road_Number int,
+  Pedestrian_Crossing_Human_Control int,
+  Pedestrian_Crossing_Physical_Facilities int,
+  Light_Conditions int,
+  Weather_Conditions int,
+  Road_Surface_Conditions int,
+  Special_Conditions_at_Site int,
+  Carriageway_Hazards int,
+  Urban_or_Rural_Area int,
+  Did_Police_Officer_Attend_Scene_of_Accident int,
+  LSOA_of_Accident_Location varchar(30)
+);
+
+create table vehicles_2015
+(
+  Accident_Index varchar(80),
+  Vehicle_Reference int,
+  Vehicle_Type int,
+  Vehicle_Manoeuvre int
+);
+
+create table vehicle_types(
+codes int,
+label varchar(100)
+)
+
+#####-- Evaluate the median severity value of accidents caused by various Motorcycles
+select distinct t.label,
+percentile_cont(0.50) within group(order by a.accident_severity) over (partition by t.label)
+as median_accident_severity
+from accidents_2015 a
+inner join vehicles_2015 v on v.accident_index = a.accident_index
+inner join vehicle_types t on t.codes = v.vehicle_type
+where t.label like '%otorcycle%';
+
+###### Evaluate Accident Severity and Total Accidents per Vehicle Type
+select t.label, count(a.accident_index) as Total_accidents, avg(a.accident_Severity) as Accident_Severity
+from accidents_2015 a
+inner join vehicles_2015 v on v.accident_index = a.accident_index
+inner join vehicle_types t on t.codes = v.vehicle_type
+group by t.label
+;
+
+
+####Calculate the Average Severity by vehicle type.
+select t.label, avg(a.accident_Severity) as Average_Severity
+from accidents_2015 a
+inner join vehicles_2015 v on v.accident_index = a.accident_index
+inner join vehicle_types t on t.codes = v.vehicle_type
+group by t.label;
+
+
+
+#####Calculate the Average Severity and Total Accidents by Motorcycle.
+select t.label, count(a.accident_index) as Total_accidents, avg(a.accident_Severity) as Accident_Severity
+from accidents_2015 a
+inner join vehicles_2015 v on v.accident_index = a.accident_index
+inner join vehicle_types t on t.codes = v.vehicle_type
+where t.label like '%otorcycle%'
+group by t.label
+;
